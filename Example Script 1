@@ -1,0 +1,154 @@
+local cooldown = 3
+local cooldowns = {}
+local rp = game:GetService("ReplicatedStorage")
+local PowerBall = rp:WaitForChild("PowerBall")
+
+PowerBall.OnServerEvent:Connect(function(plr,Hit,chargeUpTime)
+	if cooldowns[plr] or not Hit then return end
+	cooldowns[plr] = true
+	
+	
+	local Ball = game.ServerStorage.PowerBall.PowerBall:Clone()
+	local mesh = game.ServerStorage.PowerBall.MeshPart:Clone()
+	local powerBall = game.ServerStorage.PowerBall
+	
+	plr.Character.HumanoidRootPart.Anchored = true
+	Ball.Anchored = true
+	mesh.Anchored = true
+	
+	
+	
+	
+	
+	Ball.Parent = plr.Character.HumanoidRootPart
+	mesh.Parent = plr.Character.HumanoidRootPart
+	mesh.CFrame = CFrame.new(plr.Character.HumanoidRootPart.Position + plr.Character.HumanoidRootPart.CFrame.LookVector * 2)
+	Ball.CFrame = CFrame.new(plr.Character.HumanoidRootPart.Position + plr.Character.HumanoidRootPart.CFrame.LookVector * 2)
+	-- WELDING TO HAND
+	
+	local weld = Instance.new("Weld")
+	weld.Part0 = Ball
+	weld.Part1 = mesh
+	weld.Parent = Ball
+	
+
+	
+		
+	
+	
+	
+	local bodyVelocity = Instance.new("LinearVelocity")
+	bodyVelocity.MaxForce = 1e6
+	bodyVelocity.VectorVelocity = Hit.LookVector*150
+	local Attachment = Instance.new("Attachment")
+	local Attachment2 = Instance.new("Attachment")
+	bodyVelocity.Attachment0 = Attachment
+	local bodyVelocity2 = bodyVelocity:Clone()
+	bodyVelocity2.Attachment0 = Attachment2
+	Attachment.Parent = Ball
+	Attachment2.Parent = mesh
+	mesh.CanTouch = true
+	bodyVelocity.Enabled = false
+	bodyVelocity2.Enabled = false
+	bodyVelocity.Parent = Ball
+	bodyVelocity2.Parent = mesh
+	
+	
+
+	
+
+
+	Ball.Size = Vector3.new(0.5,0.5,0.5)
+	mesh.Size = Vector3.new(0.5,0.5,0.5)
+	local OGSize = Vector3.new(3,3,3)
+	local chargeUpTime = 1
+	
+	local Animator = plr.Character.Humanoid.Animator
+	local chargeUp = script.ChargeUp
+	local chargeUpTrack = Animator:LoadAnimation(chargeUp)
+	
+	chargeUpTrack:Play()
+	
+	
+	for i=1, 25 * chargeUpTime do
+		wait()
+		
+		Ball.Size = Ball.Size + Vector3.new(0.1 / chargeUpTime,0.1 / chargeUpTime,0.1 / chargeUpTime)
+		mesh.Size = mesh.Size + Vector3.new(0.1 / chargeUpTime,0.1 / chargeUpTime,0.1 / chargeUpTime)
+	end
+	
+	
+
+	
+	Ball.Anchored = false
+	mesh.Anchored = false
+	plr.Character.HumanoidRootPart.Anchored = false
+	Ball:SetNetworkOwner(plr)
+	mesh:SetNetworkOwner(plr)
+	PowerBall:FireClient(plr)
+	
+	local powerBallHit = script.PowerBallHit
+	local powerBallHitTrack = Animator:LoadAnimation(powerBallHit)
+	powerBallHitTrack:Play()
+	
+	print("TouchStarting")
+	local touchConn
+	touchConn = mesh.Touched:Connect(function(hit)
+	
+		
+
+		if hit.Parent.Name ~= plr.Name then
+			if hit.Parent:FindFirstChild("Humanoid") then
+				local h = hit.Parent:FindFirstChild("Humanoid")
+				print("Touched human")
+				bodyVelocity.VectorVelocity = Hit.LookVector*0
+				bodyVelocity2.VectorVelocity = Hit.LookVector*0
+
+				mesh.CanTouch = false
+
+				for i=1, 15 do
+					wait()
+
+
+					Ball.Size = Ball.Size + Vector3.new(0.5 ,0.5  ,0.5  )
+					mesh.Size = mesh.Size + Vector3.new(0.5  ,0.5  ,0.5 )
+				end
+
+
+				for i,v in pairs(Ball:GetChildren()) do
+					if v:IsA("ParticleEmitter") then
+						v:Emit(200)
+					end
+				end
+				hit.Parent:BreakJoints()
+
+
+				wait(0.5)
+
+				Ball:Destroy()
+				mesh:Destroy()
+				if touchConn ~= nil then touchConn:Disconnect() end
+
+			end
+		end
+	end)
+
+
+
+
+	wait(cooldown)
+
+	if touchConn ~= nil then
+		touchConn:Disconnect() 
+	end	
+	Ball:Destroy()
+	mesh:Destroy()
+	
+	
+
+	
+	
+	
+	
+	cooldowns[plr] = nil
+end)
